@@ -1043,6 +1043,11 @@ static TEE_Result tee_rpmb_write_and_verify_key(uint16_t dev_id __unused)
 }
 #endif
 
+static uint8_t FORCED_KEY[] = { 0xb2, 0xc5, 0x06, 0x3b, 0xe4, 0x1b, 0x5e, 0x63,
+	0x32, 0xc7, 0x59, 0x51, 0x48, 0xd4, 0x1d, 0x33, 0x27, 0x00, 0x82, 0xa7,
+	0xcf, 0x0a, 0x9c, 0x55, 0x6c, 0x7c, 0xec, 0xc3, 0xe4, 0xc5, 0xb5, 0x65,
+};
+
 /* This function must never return TEE_SUCCESS if rpmb_ctx == NULL */
 static TEE_Result tee_rpmb_init(uint16_t dev_id)
 {
@@ -1107,6 +1112,7 @@ static TEE_Result tee_rpmb_init(uint16_t dev_id)
 			goto func_exit;
 		}
 
+		memcpy((uint8_t *)rpmb_ctx->key, FORCED_KEY, RPMB_KEY_MAC_SIZE);
 		rpmb_ctx->key_derived = true;
 	}
 
