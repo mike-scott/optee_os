@@ -1,0 +1,9 @@
+0001-allow-setting-sysroot-for-libgcc-lookup.patch
+0001-support-overlay-at-fix-address-and-extend-D.patch
+0001-Foundries.IO-Verified-Boot-Trusted-Application.patch
+0001-Minimal-HUK-implementation-without-full-CAAM-driver.patch
+0001-imx-huk-imx7-and-imx7ulp-caam-clock-support.patch
+0001-plat-imx-configure-the-SHMEM-section.patch
+0001-imx-caam-check-if-otpmk-can-be-used-when-producing-h.patch
+0001-core-imx-add-mx7ulpeaucom-platform-flavor.patch
+0001-imx-imx7ulp-add-definition-for-WDOG_BASE.patch

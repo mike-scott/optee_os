@@ -24,7 +24,6 @@
 static uint8_t stored_key[MKVB_SIZE];
 static bool mkvb_retrieved;
 
-#if defined(CFG_MX6) || defined(CFG_MX6UL)
 static void caam_enable_clocks(void)
 {
 	vaddr_t ccm_base = core_mmu_get_va(CCM_BASE, MEM_AREA_IO_SEC);
@@ -38,30 +37,6 @@ static void caam_enable_clocks(void)
 		io_setbits32(ccm_base + CCM_CCGR6,
 			     CCM_CCGR6_EMI_SLOW);
 }
-#endif /* CFG_MX6 || CFG_MX6UL */
-
-#if defined(CFG_MX7)
-static void caam_enable_clocks(void)
-{
-	vaddr_t ccm_base = core_mmu_get_va(CCM_BASE, MEM_AREA_IO_SEC);
-
-	io_setbits32(ccm_base + CCM_CCGRx_SET(CCM_CLOCK_DOMAIN_CAAM),
-		     CCM_CCGRx_ALWAYS_ON(0));
-}
-#endif /* CFG_MX7 */
-
-#if defined(CFG_MX7ULP)
-#define PCC_CGC_BIT_SHIFT 30
-#define PCC_ENABLE_CLOCK (1 << PCC_CGC_BIT_SHIFT)
-#define PCC_DISABLE_CLOCK (0 << PCC_CGC_BIT_SHIFT)
-#define PCC_CAAM 0x90
-static void caam_enable_clocks(void)
-{
-	vaddr_t pcc2_base = core_mmu_get_va(PCC2_BASE, MEM_AREA_IO_SEC);
-
-	io_setbits32(pcc2_base + PCC_CAAM, PCC_ENABLE_CLOCK);
-}
-#endif /* CFG_MX7ULP */
 
 static TEE_Result imx_caam_reset_jr(struct imx_caam_ctrl *ctrl)
 {
@@ -165,64 +140,11 @@ out:
 	return ret;
 }
 
-static TEE_Result check_master_key_source_otpmk(void)
-{
-	vaddr_t snvs = core_mmu_get_va(SNVS_BASE, MEM_AREA_IO_SEC);
-	uint32_t val;
-
-	val = io_read32(snvs + SNVS_HPCOMR);
-	val &= BM_SNVS_HPCOMR_MKS_EN;
-
-	/* Check master key source if selected via MASTER_KEY_SEL */
-	if (val) {
-		val = io_read32(snvs + SNVS_LPMKCR);
-		val &= ~BM_SNVS_LP_MKCR_MKS_SEL;
-		if (val != 0) {
-			EMSG("OTPMK is not set as master key");
-			return TEE_ERROR_SECURITY;
-		}
-	}
-
-	DMSG("Master key source is set to OTPMK");
-
-	return TEE_SUCCESS;
-}
-
-static TEE_Result check_caam_mode_trusted(void)
-{
-	vaddr_t caam = core_mmu_get_va(CAAM_BASE, MEM_AREA_IO_SEC);
-	uint32_t val;
-
-	/* We can only read true OTPMK when CAAM is operating in secure
-	 * or trusted mode.
-	 */
-	val = io_read32(caam + SEC_REG_CSTA_OFFSET);
-	switch (val & CSTA_MOO_MASK) {
-	case CSTA_MOO_SECURE:
-		DMSG("CAAM mode of operation: SECURE");
-		break;
-	case CSTA_MOO_TRUSTED:
-		DMSG("CAAM mode of operation: TRUSTED");
-		break;
-	default:
-		EMSG("CAAM not secure/trusted; OTPMK inaccessible");
-		return TEE_ERROR_SECURITY;
-	}
-
-	return TEE_SUCCESS;
-}
-
 TEE_Result tee_otp_get_hw_unique_key(struct tee_hw_unique_key *hwkey)
 {
 	int ret = TEE_ERROR_SECURITY;
 
 	if (!mkvb_retrieved) {
-		ret = check_master_key_source_otpmk();
-		if (ret)
-			return ret;
-		ret = check_caam_mode_trusted();
-		if (ret)
-			return ret;
 		ret = caam_get_mkvb(stored_key);
 		if (ret)
 			return ret;
