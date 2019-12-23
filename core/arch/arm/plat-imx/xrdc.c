@@ -565,9 +565,9 @@ static TEE_Result xrdc_init(void)
 	if (!ppc_va_base_addr)
 		goto error;
 
-	val = read32(ppc_va_base_addr + PPC_XRDC_OFFSET);
+	val = io_read32(ppc_va_base_addr + PPC_XRDC_OFFSET);
 	val |= PPC_XRDC_CGC_MASK;
-	write32(val, ppc_va_base_addr + PPC_XRDC_OFFSET);
+	io_write32(ppc_va_base_addr + PPC_XRDC_OFFSET, val);
 
 	/* Get xrdc registers */
 	xrdc_va_base_addr = core_mmu_get_va(XRDC_BASE, MEM_AREA_IO_SEC);
@@ -678,6 +678,7 @@ static TEE_Result pm_enter_resume(enum pm_op op, uint32_t pm_hint,
 		return pm_resume(pm_hint);
 }
 
+#if defined(LDTS_DONE)
 /**
  * @brief      Disable XRDC before reboot.
  *             During reboot, registers related to memory region controller are
@@ -700,3 +701,4 @@ void xrdc_reset(void)
 	/* Disable XRDC */
 	xrdc_reg->cr &= ~XRDC_CR_GVLD_MASK;
 }
+#endif
