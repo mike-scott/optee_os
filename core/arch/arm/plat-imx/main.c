@@ -106,6 +106,9 @@ register_phys_mem(MEM_AREA_TEE_COHERENT,
 #ifdef M4_AIPS_BASE
 register_phys_mem(MEM_AREA_IO_SEC, M4_AIPS_BASE, M4_AIPS_SIZE);
 #endif
+#ifdef RPMSG_BASE
+register_dynamic_shm(RPMSG_BASE, RPMSG_SIZE);
+#endif
 #ifdef IRAM_S_BASE
 register_phys_mem(MEM_AREA_TEE_COHERENT,
 		  ROUNDDOWN(IRAM_S_BASE, CORE_MMU_PGDIR_SIZE),
