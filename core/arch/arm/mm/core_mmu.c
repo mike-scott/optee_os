@@ -333,7 +333,10 @@ static void check_phys_mem_is_outside(struct core_mmu_phys_mem *start,
 			     ") overlaps map (type %d %#" PRIxPA ":%#zx)",
 			     start[n].addr, start[n].size,
 			     map->type, map->pa, map->size);
+#if 0
+			/* FIO: todo */
 			panic();
+#endif
 		}
 	}
 }
